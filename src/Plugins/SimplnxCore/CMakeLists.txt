@@ -77,6 +77,7 @@ set(FilterList
   IterativeClosestPointFilter
   KMeansFilter
   KMedoidsFilter
+  LabelTriangleGeometryFilter
   LaplacianSmoothingFilter
   MapPointCloudToRegularGridFilter
   MinNeighbors
@@ -97,6 +98,7 @@ set(FilterList
   ReadVolumeGraphicsFileFilter
   RegularGridSampleSurfaceMeshFilter
   RemoveFlaggedFeaturesFilter
+  RemoveFlaggedTrianglesFilter
   RemoveFlaggedVertices
   RemoveMinimumSizeFeaturesFilter
   RenameDataObject
@@ -171,6 +173,7 @@ set(AlgorithmList
   ImageContouring
   KMeans
   KMedoids
+  LabelTriangleGeometry
   LaplacianSmoothing
   NearestPointFuseRegularGrids
   PartitionGeometry
@@ -183,6 +186,7 @@ set(AlgorithmList
   ReadVolumeGraphicsFile
   RegularGridSampleSurfaceMesh
   RemoveFlaggedFeatures
+  RemoveFlaggedTriangles
   ReplaceElementAttributesWithNeighborValues
   ResampleImageGeom
   ResampleRectGridToImageGeom

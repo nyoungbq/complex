@@ -78,6 +78,7 @@ set(${PLUGIN_NAME}UnitTest_SRCS
   IterativeClosestPointTest.cpp
   KMeansTest.cpp
   KMedoidsTest.cpp
+  LabelTriangleGeometryTest.cpp
   LaplacianSmoothingFilterTest.cpp
   MapPointCloudToRegularGridTest.cpp
   MinNeighborsTest.cpp
@@ -98,6 +99,7 @@ set(${PLUGIN_NAME}UnitTest_SRCS
   ReadVolumeGraphicsFileTest.cpp
   RegularGridSampleSurfaceMeshTest.cpp
   RemoveFlaggedFeaturesTest.cpp
+  RemoveFlaggedTrianglesTest.cpp
   RemoveFlaggedVerticesTest.cpp
   RemoveMinimumSizeFeaturesTest.cpp
   RenameDataObjectTest.cpp
