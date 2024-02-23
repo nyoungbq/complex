@@ -25,6 +25,7 @@ public:
 
   // Parameter Keys
   static inline constexpr StringLiteral k_ReferenceOrientation_Key = "reference_orientation";
+  static inline constexpr StringLiteral k_ConstantRefOrientationVec_Key = "constant_ref_orientation_vec";
   static inline constexpr StringLiteral k_CellFeatureIdsArrayPath_Key = "feature_ids_path";
   static inline constexpr StringLiteral k_CellPhasesArrayPath_Key = "cell_phases_array_path";
   static inline constexpr StringLiteral k_QuatsArrayPath_Key = "quats_array_path";

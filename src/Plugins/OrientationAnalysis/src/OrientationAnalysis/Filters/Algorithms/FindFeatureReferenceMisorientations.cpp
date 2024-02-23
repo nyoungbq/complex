@@ -42,10 +42,10 @@ Result<> FindFeatureReferenceMisorientations::operator()()
   const auto& crystalStructures = m_DataStructure.getDataRefAs<UInt32Array>(m_InputValues->CrystalStructuresArrayPath);
 
   // Output Arrays
-  auto& featureReferenceMisorientations = m_DataStructure.getDataRefAs<Float32Array>(m_InputValues->FeatureReferenceMisorientationsArrayName);
-  auto& avgReferenceMisorientation = m_DataStructure.getDataRefAs<Float32Array>(m_InputValues->FeatureAvgMisorientationsArrayName);
+  auto& featureReferenceMisorientations = m_DataStructure.getDataRefAs<Float32Array>(m_InputValues->FeatureReferenceMisorientationsArrayPath);
+  auto& avgReferenceMisorientation = m_DataStructure.getDataRefAs<Float32Array>(m_InputValues->FeatureAvgMisorientationsArrayPath);
 
-  auto validateNumFeatResult = ValidateNumFeaturesInArray(m_DataStructure, m_InputValues->FeatureAvgMisorientationsArrayName, featureIds);
+  auto validateNumFeatResult = ValidateNumFeaturesInArray(m_DataStructure, m_InputValues->FeatureAvgMisorientationsArrayPath, featureIds);
   if(validateNumFeatResult.invalid())
   {
     return validateNumFeatResult;
