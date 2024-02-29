@@ -55,7 +55,6 @@ Parameters FindFeatureReferenceMisorientationsFilter::parameters() const
 
   // Create the parameter descriptors that are needed for this filter
   params.insertSeparator(Parameters::Separator{"Input Parameters"});
-
   params.insertLinkableParameter(std::make_unique<ChoicesParameter>(k_ReferenceOrientation_Key, "Reference Orientation", "Specifies the reference orientation to use when comparing to each Cell", 0,
                                                                     ChoicesParameter::Choices{"Average Orientation", "Orientation at Feature Centroid", "Set Custom Reference Orientation"}));
   params.insert(std::make_unique<VectorFloat32Parameter>(k_ConstantRefOrientationVec_Key, "Constant Axis-Angle Orientation", "Specifies the average orientation in Axis-Angle representation",

@@ -6,6 +6,7 @@
 #include "simplnx/Utilities/DataArrayUtilities.hpp"
 
 #include "EbsdLib/LaueOps/LaueOps.h"
+#include "EbsdLib/OrientationMath/OrientationConverter.hpp"
 
 using namespace nx::core;
 
@@ -75,12 +76,28 @@ Result<> FindFeatureReferenceMisorientations::operator()()
 
   std::vector<float> avgMiso(totalFeatures * 2, 0.0F);
 
+  QuatF q2;
+  if(m_InputValues->ReferenceOrientation == 2)
+  {
+    auto axisAngleConverter = AxisAngleConverter<EbsdDataArray<float32>, float32>::New();
+
+    auto inputArray = EbsdDataArray<float32>::CreateArray(1, {m_InputValues->ConstantRefOrientationVec.size()}, "Input Axis-Angle Orientation", true);
+
+    for(int i = 0; i < m_InputValues->ConstantRefOrientationVec.size(); i++)
+    {
+      inputArray->setComponent(0, i, m_InputValues->ConstantRefOrientationVec[i]);
+    }
+
+    axisAngleConverter->setInputData(inputArray);
+    axisAngleConverter->toQuaternion();
+    auto quatArray = axisAngleConverter->getOutputData();
+    q2 = QuatF(quatArray->at(0), quatArray->at(1), quatArray->at(2), quatArray->at(3));
+  }
   for(int64_t point = 0; point < totalPoints; point++)
   {
     if(featureIds[point] > 0 && cellPhases[point] > 0)
     {
       QuatF q1(quats[point * 4 + 0], quats[point * 4 + 1], quats[point * 4 + 2], quats[point * 4 + 3]);
-      QuatF q2;
       uint32 phase1 = crystalStructures[cellPhases[point]];
       if(m_InputValues->ReferenceOrientation == 0)
       {
