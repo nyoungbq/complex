@@ -12,6 +12,7 @@
 #include "EbsdLib/Core/Quaternion.hpp"
 
 #include <EbsdLib/Core/EbsdDataArray.hpp>
+#include <EbsdLib/OrientationMath/OrientationConverter.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -102,6 +103,23 @@ Result<> FindFeatureReferenceCAxisMisorientations::operator()()
   Eigen::Vector3f c1{0.0f, 0.0f, 0.0f};
   Eigen::Vector3f avgCAxisMis = {0.0f, 0.0f, 0.0f};
   usize index = 0;
+  QuatF quatF;
+  if(m_InputValues->UseConstantReferenceOrientation)
+  {
+    auto axisAngleConverter = AxisAngleConverter<EbsdDataArray<float32>, float32>::New();
+
+    auto inputArray = EbsdDataArray<float32>::CreateArray(1, {m_InputValues->ConstantRefOrientationVec.size()}, "Input Axis-Angle Orientation", true);
+
+    for(int i = 0; i < m_InputValues->ConstantRefOrientationVec.size(); i++)
+    {
+      inputArray->setComponent(0, i, m_InputValues->ConstantRefOrientationVec[i]);
+    }
+
+    axisAngleConverter->setInputData(inputArray);
+    axisAngleConverter->toQuaternion();
+    auto quatArray = axisAngleConverter->getOutputData();
+    quatF = QuatF(quatArray->at(0), quatArray->at(1), quatArray->at(2), quatArray->at(3));
+  }
   for(int64 col = 0; col < xPoints; col++)
   {
     for(int64 row = 0; row < yPoints; row++)
@@ -114,8 +132,15 @@ Result<> FindFeatureReferenceCAxisMisorientations::operator()()
         const bool isHex = crystalStructureType == EbsdLib::CrystalStructure::Hexagonal_High || crystalStructureType == EbsdLib::CrystalStructure::Hexagonal_Low;
         if(featureIds[point] > 0 && cellPhases[point] > 0 && isHex)
         {
-          OrientationF oMatrix =
-              OrientationTransformation::qu2om<QuatF, Orientation<float32>>({quats[quatTupleIndex], quats[quatTupleIndex + 1], quats[quatTupleIndex + 2], quats[quatTupleIndex + 3]});
+          OrientationF oMatrix;
+          if(m_InputValues->UseConstantReferenceOrientation)
+          {
+            oMatrix = OrientationTransformation::qu2om<QuatF, Orientation<float32>>(quatF);
+          }
+          else
+          {
+            oMatrix = OrientationTransformation::qu2om<QuatF, Orientation<float32>>({quats[quatTupleIndex], quats[quatTupleIndex + 1], quats[quatTupleIndex + 2], quats[quatTupleIndex + 3]});
+          }
           // transpose the g matrices so when caxis is multiplied by it, it will give the sample direction that the caxis is along
           g1T = OrientationMatrixToGMatrixTranspose(oMatrix);
           c1 = g1T * cAxis;

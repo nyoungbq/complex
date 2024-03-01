@@ -50,6 +50,10 @@ Parameters FindFeatureReferenceCAxisMisorientationsFilter::parameters() const
 
   // Create the parameter descriptors that are needed for this filter
   params.insertSeparator(Parameters::Separator{"Input Parameters"});
+  params.insertLinkableParameter(std::make_unique<BoolParameter>(k_UseConstantReferenceOrientation_Key, "Use Constant Reference Orientation",
+                                                                 "When True user will set custom reference orientation, else reference orientations will be generated from Quaternions array", false));
+  params.insert(std::make_unique<VectorFloat32Parameter>(k_ConstantRefOrientationVec_Key, "Constant Axis-Angle Orientation", "Specifies the average orientation in Axis-Angle representation",
+                                                         std::vector<float32>{0.0f, 0.0f, 0.0f, 0.0f}, std::vector<std::string>({"x", "y", "z", "theta"})));
   params.insert(std::make_unique<GeometrySelectionParameter>(k_ImageGeometryPath_Key, "Image Geometry", "The path to the input image geometry", DataPath{},
                                                              GeometrySelectionParameter::AllowedTypes{IGeometry::Type::Image}));
   params.insertSeparator(Parameters::Separator{"Required Cell Data"});
@@ -76,6 +80,10 @@ Parameters FindFeatureReferenceCAxisMisorientationsFilter::parameters() const
                                                           "Standard deviation of the Feature Reference CAxis Misorientation values for all of the Cells that belong to the Feature",
                                                           "StdevCAxisMisorientation"));
 
+  // Associate the Linkable Parameter(s) to the children parameters that they control
+  params.linkParameters(k_UseConstantReferenceOrientation_Key, k_ConstantRefOrientationVec_Key, true);
+  params.linkParameters(k_UseConstantReferenceOrientation_Key, k_QuatsArrayPath_Key, false);
+
   return params;
 }
 
@@ -91,7 +99,6 @@ IFilter::PreflightResult FindFeatureReferenceCAxisMisorientationsFilter::preflig
 {
   auto pFeatureIdsArrayPathValue = filterArgs.value<DataPath>(k_FeatureIdsArrayPath_Key);
   auto pCellPhasesArrayPathValue = filterArgs.value<DataPath>(k_CellPhasesArrayPath_Key);
-  auto pQuatsArrayPathValue = filterArgs.value<DataPath>(k_QuatsArrayPath_Key);
   auto pAvgCAxesArrayPathValue = filterArgs.value<DataPath>(k_AvgCAxesArrayPath_Key);
   auto pFeatureAvgCAxisMisorientationsArrayNameValue = filterArgs.value<std::string>(k_FeatureAvgCAxisMisorientationsArrayName_Key);
   auto pFeatureStDevCAxisMisorientationsArrayNameValue = filterArgs.value<std::string>(k_FeatureStdevCAxisMisorientationsArrayName_Key);
@@ -101,7 +108,17 @@ IFilter::PreflightResult FindFeatureReferenceCAxisMisorientationsFilter::preflig
   nx::core::Result<OutputActions> resultOutputActions;
   std::vector<PreflightValue> preflightUpdatedValues;
 
-  auto tupleValidityCheck = dataStructure.validateNumberOfTuples({pFeatureIdsArrayPathValue, pCellPhasesArrayPathValue, pQuatsArrayPathValue});
+  nonstd::expected<void, std::string> tupleValidityCheck;
+  auto pUseConstantReferenceOrientationValue = filterArgs.value<bool>(k_UseConstantReferenceOrientation_Key);
+  if(pUseConstantReferenceOrientationValue)
+  {
+    tupleValidityCheck = dataStructure.validateNumberOfTuples({pFeatureIdsArrayPathValue, pCellPhasesArrayPathValue});
+  }
+  else
+  {
+    auto pQuatsArrayPathValue = filterArgs.value<DataPath>(k_QuatsArrayPath_Key);
+    tupleValidityCheck = dataStructure.validateNumberOfTuples({pFeatureIdsArrayPathValue, pCellPhasesArrayPathValue, pQuatsArrayPathValue});
+  }
   if(!tupleValidityCheck)
   {
     return {MakeErrorResult<OutputActions>(-9800, fmt::format("The following DataArrays all must have equal number of tuples but this was not satisfied.\n{}", tupleValidityCheck.error()))};
@@ -138,6 +155,8 @@ Result<> FindFeatureReferenceCAxisMisorientationsFilter::executeImpl(DataStructu
   FindFeatureReferenceCAxisMisorientationsInputValues inputValues;
 
   inputValues.ImageGeometryPath = filterArgs.value<DataPath>(k_ImageGeometryPath_Key);
+  inputValues.UseConstantReferenceOrientation = filterArgs.value<bool>(k_UseConstantReferenceOrientation_Key);
+  inputValues.ConstantRefOrientationVec = filterArgs.value<std::vector<float32>>(k_ConstantRefOrientationVec_Key);
   inputValues.FeatureIdsArrayPath = filterArgs.value<DataPath>(k_FeatureIdsArrayPath_Key);
   inputValues.CellPhasesArrayPath = filterArgs.value<DataPath>(k_CellPhasesArrayPath_Key);
   inputValues.QuatsArrayPath = filterArgs.value<DataPath>(k_QuatsArrayPath_Key);

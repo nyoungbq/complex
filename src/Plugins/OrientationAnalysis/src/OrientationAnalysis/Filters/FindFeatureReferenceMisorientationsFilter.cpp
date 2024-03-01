@@ -186,6 +186,7 @@ Result<> FindFeatureReferenceMisorientationsFilter::executeImpl(DataStructure& d
   FindFeatureReferenceMisorientationsInputValues inputValues;
 
   inputValues.ReferenceOrientation = filterArgs.value<ChoicesParameter::ValueType>(k_ReferenceOrientation_Key);
+  inputValues.ConstantRefOrientationVec = filterArgs.value<std::vector<float32>>(k_ConstantRefOrientationVec_Key);
   inputValues.FeatureIdsArrayPath = filterArgs.value<DataPath>(k_CellFeatureIdsArrayPath_Key);
   inputValues.CellPhasesArrayPath = filterArgs.value<DataPath>(k_CellPhasesArrayPath_Key);
   inputValues.QuatsArrayPath = filterArgs.value<DataPath>(k_QuatsArrayPath_Key);

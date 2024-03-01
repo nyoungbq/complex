@@ -13,6 +13,8 @@ namespace nx::core
 
 struct ORIENTATIONANALYSIS_EXPORT FindFeatureReferenceCAxisMisorientationsInputValues
 {
+  bool UseConstantReferenceOrientation;
+  std::vector<float32> ConstantRefOrientationVec;
   DataPath ImageGeometryPath;
   DataPath FeatureIdsArrayPath;
   DataPath CellPhasesArrayPath;

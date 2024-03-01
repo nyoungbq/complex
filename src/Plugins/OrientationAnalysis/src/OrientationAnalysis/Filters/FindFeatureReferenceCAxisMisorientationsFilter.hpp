@@ -24,6 +24,8 @@ public:
   FindFeatureReferenceCAxisMisorientationsFilter& operator=(FindFeatureReferenceCAxisMisorientationsFilter&&) noexcept = delete;
 
   // Parameter Keys
+  static inline constexpr StringLiteral k_UseConstantReferenceOrientation_Key = "use_constant_reference_orientation";
+  static inline constexpr StringLiteral k_ConstantRefOrientationVec_Key = "constant_ref_orientation_vec";
   static inline constexpr StringLiteral k_ImageGeometryPath_Key = "image_geometry_path";
   static inline constexpr StringLiteral k_FeatureIdsArrayPath_Key = "feature_ids_array_path";
   static inline constexpr StringLiteral k_CellPhasesArrayPath_Key = "cell_phases_array_path";
