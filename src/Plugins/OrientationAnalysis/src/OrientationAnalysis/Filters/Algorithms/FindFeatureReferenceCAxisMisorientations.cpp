@@ -150,6 +150,7 @@ Result<> FindFeatureReferenceCAxisMisorientations::operator()()
           avgCAxisMis[0] = avgCAxes[3 * featureIds[point]];
           avgCAxisMis[1] = avgCAxes[3 * featureIds[point] + 1];
           avgCAxisMis[2] = avgCAxes[3 * featureIds[point] + 2];
+
           // normalize so that the magnitude is 1
           avgCAxisMis.normalize();
           w = ImageRotationUtilities::CosBetweenVectors(c1, avgCAxisMis);
