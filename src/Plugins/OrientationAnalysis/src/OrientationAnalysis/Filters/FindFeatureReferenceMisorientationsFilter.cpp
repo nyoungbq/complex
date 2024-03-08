@@ -104,6 +104,7 @@ Parameters FindFeatureReferenceMisorientationsFilter::parameters() const
 
   // Custom Constant Orientation
   params.linkParameters(k_ReferenceOrientation_Key, k_ConstantRefOrientationVec_Key, static_cast<ChoicesParameter::ValueType>(2));
+  params.linkParameters(k_ReferenceOrientation_Key, k_AvgQuatsArrayPath_Key, static_cast<ChoicesParameter::ValueType>(2));
 
   return params;
 }
@@ -153,14 +154,7 @@ IFilter::PreflightResult FindFeatureReferenceMisorientationsFilter::preflightImp
   {
     DataPath featAvgMisorientationsPath;
     std::vector<usize> tupleShape;
-    if(pReferenceOrientationValue == 0)
-    {
-      auto cellFeatPath = pAvgQuatsArrayPathValue.getParent();
-      featAvgMisorientationsPath = cellFeatPath.createChildPath(pFeatureAvgMisorientationsArrayNameValue);
-      const auto& featureAvgQuats = dataStructure.getDataRefAs<Float32Array>(pAvgQuatsArrayPathValue);
-      tupleShape = featureAvgQuats.getIDataStore()->getTupleShape();
-    }
-    else
+    if(pReferenceOrientationValue == 1)
     {
       auto* cellFeatAM = dataStructure.getDataAs<AttributeMatrix>(pCellFeatAttributeMatrixArrayPathValue);
       if(cellFeatAM == nullptr)
@@ -169,6 +163,13 @@ IFilter::PreflightResult FindFeatureReferenceMisorientationsFilter::preflightImp
       }
       featAvgMisorientationsPath = pCellFeatAttributeMatrixArrayPathValue.createChildPath(pFeatureAvgMisorientationsArrayNameValue);
       tupleShape = cellFeatAM->getShape();
+    }
+    else
+    {
+      auto cellFeatPath = pAvgQuatsArrayPathValue.getParent();
+      featAvgMisorientationsPath = cellFeatPath.createChildPath(pFeatureAvgMisorientationsArrayNameValue);
+      const auto& featureAvgQuats = dataStructure.getDataRefAs<Float32Array>(pAvgQuatsArrayPathValue);
+      tupleShape = featureAvgQuats.getIDataStore()->getTupleShape();
     }
 
     auto createArrayAction = std::make_unique<CreateArrayAction>(DataType::float32, tupleShape, std::vector<usize>{1}, featAvgMisorientationsPath);
@@ -196,8 +197,8 @@ Result<> FindFeatureReferenceMisorientationsFilter::executeImpl(DataStructure& d
   inputValues.FeatureReferenceMisorientationsArrayPath = inputValues.FeatureIdsArrayPath.getParent().createChildPath(filterArgs.value<std::string>(k_FeatureReferenceMisorientationsArrayName_Key));
   auto pCellFeatAttributeMatrixArrayPathValue = filterArgs.value<DataPath>(k_CellFeatureAttributeMatrixPath_Key);
   auto featAvgMisorientationName = filterArgs.value<std::string>(k_FeatureAvgMisorientationsArrayName_Key);
-  inputValues.FeatureAvgMisorientationsArrayPath = inputValues.ReferenceOrientation == 0 ? inputValues.AvgQuatsArrayPath.getParent().createChildPath(featAvgMisorientationName) :
-                                                                                           pCellFeatAttributeMatrixArrayPathValue.createChildPath(featAvgMisorientationName);
+  inputValues.FeatureAvgMisorientationsArrayPath = inputValues.ReferenceOrientation == 1 ? pCellFeatAttributeMatrixArrayPathValue.createChildPath(featAvgMisorientationName) :
+                                                                                           inputValues.AvgQuatsArrayPath.getParent().createChildPath(featAvgMisorientationName);
 
   return FindFeatureReferenceMisorientations(dataStructure, messageHandler, shouldCancel, &inputValues)();
 }

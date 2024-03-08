@@ -6,7 +6,7 @@
 #include "simplnx/Utilities/DataArrayUtilities.hpp"
 
 #include "EbsdLib/LaueOps/LaueOps.h"
-#include "EbsdLib/OrientationMath/OrientationConverter.hpp"
+#include "EbsdLib/Core/OrientationTransformation.hpp"
 
 using namespace nx::core;
 
@@ -77,21 +77,10 @@ Result<> FindFeatureReferenceMisorientations::operator()()
   std::vector<float> avgMiso(totalFeatures * 2, 0.0F);
 
   QuatF q2;
+  std::vector<int32> featurePhases(totalFeatures, -1);
   if(m_InputValues->ReferenceOrientation == 2)
   {
-    auto axisAngleConverter = AxisAngleConverter<EbsdDataArray<float32>, float32>::New();
-
-    auto inputArray = EbsdDataArray<float32>::CreateArray(1, {m_InputValues->ConstantRefOrientationVec.size()}, "Input Axis-Angle Orientation", true);
-
-    for(int i = 0; i < m_InputValues->ConstantRefOrientationVec.size(); i++)
-    {
-      inputArray->setComponent(0, i, m_InputValues->ConstantRefOrientationVec[i]);
-    }
-
-    axisAngleConverter->setInputData(inputArray);
-    axisAngleConverter->toQuaternion();
-    auto quatArray = axisAngleConverter->getOutputData();
-    q2 = QuatF(quatArray->at(0), quatArray->at(1), quatArray->at(2), quatArray->at(3));
+    q2 = OrientationTransformation::ax2qu<std::vector<float32>, QuatF>(m_InputValues->ConstantRefOrientationVec);
   }
   for(int64_t point = 0; point < totalPoints; point++)
   {
@@ -99,6 +88,10 @@ Result<> FindFeatureReferenceMisorientations::operator()()
     {
       QuatF q1(quats[point * 4 + 0], quats[point * 4 + 1], quats[point * 4 + 2], quats[point * 4 + 3]);
       uint32 phase1 = crystalStructures[cellPhases[point]];
+      if(m_InputValues->ReferenceOrientation == 2)
+      {
+        featurePhases[featureIds[point]] = phase1;
+      }
       if(m_InputValues->ReferenceOrientation == 0)
       {
         auto gnum = static_cast<size_t>(featureIds[point]);
@@ -124,13 +117,31 @@ Result<> FindFeatureReferenceMisorientations::operator()()
     }
   }
 
-  for(size_t i = 1; i < totalFeatures; i++)
+  if(m_InputValues->ReferenceOrientation == 2)
   {
-    auto idx = static_cast<int32>(i * 2);
-    avgReferenceMisorientation[i] = avgMiso[idx + 1] / avgMiso[idx];
-    if(avgMiso[idx] == 0.0f)
+    for(size_t i = 1; i < totalFeatures; i++)
     {
-      avgReferenceMisorientation[i] = 0.0f;
+      QuatF q1 = QuatF(avgQuats[i * 4 + 0], avgQuats[i * 4 + 1], avgQuats[i * 4 + 2], avgQuats[i * 4 + 3]);
+
+      // q2 is the constant axis angle represented as a quaternion
+      OrientationD axisAngle = m_OrientationOps[featurePhases[i]]->calculateMisorientation(q1, q2);
+
+      avgReferenceMisorientation[i] = static_cast<float>((180.0 / nx::core::numbers::pi) * axisAngle[3]); // convert to degrees
+    }
+  }
+  else
+  {
+    for(size_t i = 1; i < totalFeatures; i++)
+    {
+      auto idx = static_cast<int32>(i * 2);
+      if(avgMiso[idx] == 0.0f)
+      {
+        avgReferenceMisorientation[i] = 0.0f;
+      }
+      else
+      {
+        avgReferenceMisorientation[i] = avgMiso[idx + 1] / avgMiso[idx];
+      }
     }
   }
   return {};
