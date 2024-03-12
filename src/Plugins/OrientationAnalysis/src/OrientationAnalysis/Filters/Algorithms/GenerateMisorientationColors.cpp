@@ -50,8 +50,7 @@ public:
     }
 
     std::vector<LaueOps::Pointer> ops = LaueOps::GetAllOrientationOps();
-    std::array<double, 3> refDir = {m_ReferenceDir[0], m_ReferenceDir[1], m_ReferenceDir[2]};
-    QuatF q2 = OrientationTransformation::ax2qu<std::vector<float32>, QuatF>(m_ReferenceAxis);
+    QuatD q2 = OrientationTransformation::ax2qu<std::vector<float32>, QuatD>(m_ReferenceAxis);
     std::array<double, 3> dEuler = {0.0, 0.0, 0.0};
     Rgba argb = 0x00000000;
     int32_t phase = 0;
@@ -60,13 +59,9 @@ public:
     for(size_t i = start; i < end; i++)
     {
       phase = m_CellPhases[i];
-      index = i * 3;
-      m_CellMisorientationColors.setValue(index, 0);
-      m_CellMisorientationColors.setValue(index + 1, 0);
-      m_CellMisorientationColors.setValue(index + 2, 0);
-      dEuler[0] = m_CellEulerAngles.getValue(index);
-      dEuler[1] = m_CellEulerAngles.getValue(index + 1);
-      dEuler[2] = m_CellEulerAngles.getValue(index + 2);
+      m_CellMisorientationColors.setValue(3 * i, 0);
+      m_CellMisorientationColors.setValue(3 * i + 1, 0);
+      m_CellMisorientationColors.setValue(3 * i + 2, 0);
 
       // Make sure we are using a valid Euler Angles with valid crystal symmetry
       calcMisorientation = true;
@@ -82,29 +77,21 @@ public:
 
       if(phase < m_NumPhases && calcMisorientation && m_CrystalStructures[phase] < EbsdLib::CrystalStructure::LaueGroupEnd)
       {
-        argb = ops[m_CrystalStructures[phase]]->generateMisorientationColor(dEuler.data(), refDir.data(), false);
-        m_CellMisorientationColors.setValue(index, static_cast<uint8_t>(RgbColor::dRed(argb)));
-        m_CellMisorientationColors.setValue(index + 1, static_cast<uint8_t>(RgbColor::dGreen(argb)));
-        m_CellMisorientationColors.setValue(index + 2, static_cast<uint8_t>(RgbColor::dBlue(argb)));
-
-        QuatF q1;
+        QuatD q1;
         if constexpr(UsingEulerAngles)
         {
-          float32 quat0 = m_Quats[feature1 * 4];
-          float32 quat1 = m_Quats[feature1 * 4 + 1];
-          float32 quat2 = m_Quats[feature1 * 4 + 2];
-          float32 quat3 = m_Quats[feature1 * 4 + 3];
-          QuatF q1(quat0, quat1, quat2, quat3);
+          q1 = OrientationTransformation::eu2qu<std::vector<float32>, QuatD>(std::vector<float32>{m_CellOrientations[3 * i + 0], m_CellOrientations[3 * i + 1], m_CellOrientations[3 * i + 2]});
         }
         else
         {
-          QuatF q1(quat0, quat1, quat2, quat3);
+          q1 = QuatD(m_CellOrientations[4 * i + 0], m_CellOrientations[4 * i + 1], m_CellOrientations[4 * i + 2], m_CellOrientations[4 * i + 3]);
         }
-        OrientationF axisAngle = m_OrientationOps[phase1]->calculateMisorientation(q1, q2);
 
-        m_CellMisorientationColors[3 * i + 0] = axisAngle[0] * (axisAngle[3] * Constants::k_180OverPiF);
-        m_CellMisorientationColors[3 * i + 1] = axisAngle[1] * (axisAngle[3] * Constants::k_180OverPiF);
-        m_CellMisorientationColors[3 * i + 2] = axisAngle[2] * (axisAngle[3] * Constants::k_180OverPiF);
+        OrientationF axisAngle = ops[m_CrystalStructures[phase]]->generateMisorientationColor(q1, q2);
+
+        m_CellMisorientationColors.setValue(index, static_cast<uint8_t>(RgbColor::dRed(argb)));
+        m_CellMisorientationColors.setValue(index + 1, static_cast<uint8_t>(RgbColor::dGreen(argb)));
+        m_CellMisorientationColors.setValue(index + 2, static_cast<uint8_t>(RgbColor::dBlue(argb)));
       }
     }
   }
@@ -197,11 +184,11 @@ Result<> GenerateMisorientationColors::operator()()
   dataAlg.setRange(0, totalPoints);
   dataAlg.requireArraysInMemory(algArrays);
 
-  if(m_InputValues->UseEulers)
+  if(m_InputValues->useEulers)
   {
   dataAlg.execute(GenerateMisorientationColorsImpl<true>(this, m_InputValues->referenceAxis, cellOrientationArray, phases, crystalStructures, numPhases, goodVoxelsArray, MisorientationColors));
   }
-  if(!m_InputValues->UseEulers)
+  if(!m_InputValues->useEulers)
   {
   dataAlg.execute(GenerateMisorientationColorsImpl<false>(this, m_InputValues->referenceAxis, cellOrientationArray, phases, crystalStructures, numPhases, goodVoxelsArray, MisorientationColors));
   }
