@@ -20,14 +20,15 @@ namespace
  * @brief The GenerateMisorientationColorsImpl class implements a threaded algorithm that computes the Misorientation
  * colors for each element in a geometry
  */
+template<bool UsingEulerAngles = true>
 class GenerateMisorientationColorsImpl
 {
 public:
-  GenerateMisorientationColorsImpl(GenerateMisorientationColors* filter, FloatVec3Type referenceDir, nx::core::Float32Array& eulers, nx::core::Int32Array& phases, nx::core::UInt32Array& crystalStructures,
-                        int32_t numPhases, const nx::core::IDataArray* goodVoxels, nx::core::UInt8Array& colors)
+  GenerateMisorientationColorsImpl(GenerateMisorientationColors* filter, FloatVec3Type referenceAxis, Float32Array& cellOrientations, Int32Array& phases, UInt32Array& crystalStructures,
+                        int32_t numPhases, const IDataArray* goodVoxels, UInt8Array& colors)
   : m_Filter(filter)
-  , m_ReferenceDir(referenceDir)
-  , m_CellEulerAngles(eulers.getDataStoreRef())
+  , m_ReferenceAxis(referenceAxis)
+  , m_CellOrientations(cellOrientations.getDataStoreRef())
   , m_CellPhases(phases.getDataStoreRef())
   , m_CrystalStructures(crystalStructures.getDataStoreRef())
   , m_NumPhases(numPhases)
@@ -50,6 +51,7 @@ public:
 
     std::vector<LaueOps::Pointer> ops = LaueOps::GetAllOrientationOps();
     std::array<double, 3> refDir = {m_ReferenceDir[0], m_ReferenceDir[1], m_ReferenceDir[2]};
+    QuatF q2 = OrientationTransformation::ax2qu<std::vector<float32>, QuatF>(m_ReferenceAxis);
     std::array<double, 3> dEuler = {0.0, 0.0, 0.0};
     Rgba argb = 0x00000000;
     int32_t phase = 0;
@@ -81,9 +83,28 @@ public:
       if(phase < m_NumPhases && calcMisorientation && m_CrystalStructures[phase] < EbsdLib::CrystalStructure::LaueGroupEnd)
       {
         argb = ops[m_CrystalStructures[phase]]->generateMisorientationColor(dEuler.data(), refDir.data(), false);
-        m_CellMisorientationColors.setValue(index, static_cast<uint8_t>(nx::core::RgbColor::dRed(argb)));
-        m_CellMisorientationColors.setValue(index + 1, static_cast<uint8_t>(nx::core::RgbColor::dGreen(argb)));
-        m_CellMisorientationColors.setValue(index + 2, static_cast<uint8_t>(nx::core::RgbColor::dBlue(argb)));
+        m_CellMisorientationColors.setValue(index, static_cast<uint8_t>(RgbColor::dRed(argb)));
+        m_CellMisorientationColors.setValue(index + 1, static_cast<uint8_t>(RgbColor::dGreen(argb)));
+        m_CellMisorientationColors.setValue(index + 2, static_cast<uint8_t>(RgbColor::dBlue(argb)));
+
+        QuatF q1;
+        if constexpr(UsingEulerAngles)
+        {
+          float32 quat0 = m_Quats[feature1 * 4];
+          float32 quat1 = m_Quats[feature1 * 4 + 1];
+          float32 quat2 = m_Quats[feature1 * 4 + 2];
+          float32 quat3 = m_Quats[feature1 * 4 + 3];
+          QuatF q1(quat0, quat1, quat2, quat3);
+        }
+        else
+        {
+          QuatF q1(quat0, quat1, quat2, quat3);
+        }
+        OrientationF axisAngle = m_OrientationOps[phase1]->calculateMisorientation(q1, q2);
+
+        m_CellMisorientationColors[3 * i + 0] = axisAngle[0] * (axisAngle[3] * Constants::k_180OverPiF);
+        m_CellMisorientationColors[3 * i + 1] = axisAngle[1] * (axisAngle[3] * Constants::k_180OverPiF);
+        m_CellMisorientationColors[3 * i + 2] = axisAngle[2] * (axisAngle[3] * Constants::k_180OverPiF);
       }
     }
   }
@@ -114,13 +135,13 @@ public:
 
 private:
   GenerateMisorientationColors* m_Filter = nullptr;
-  FloatVec3Type m_ReferenceDir;
-  nx::core::Float32AbstractDataStore& m_CellEulerAngles;
-  nx::core::Int32AbstractDataStore& m_CellPhases;
-  nx::core::UInt32AbstractDataStore& m_CrystalStructures;
+  FloatVec3Type m_ReferenceAxis;
+  Float32AbstractDataStore& m_CellOrientations;
+  Int32AbstractDataStore& m_CellPhases;
+  UInt32AbstractDataStore& m_CrystalStructures;
   int32_t m_NumPhases = 0;
-  const nx::core::IDataArray* m_GoodVoxels = nullptr;
-  nx::core::UInt8AbstractDataStore& m_CellMisorientationColors;
+  const IDataArray* m_GoodVoxels = nullptr;
+  UInt8AbstractDataStore& m_CellMisorientationColors;
 };
 } // namespace
 
@@ -139,33 +160,32 @@ GenerateMisorientationColors::~GenerateMisorientationColors() noexcept = default
 // -----------------------------------------------------------------------------
 Result<> GenerateMisorientationColors::operator()()
 {
-
   std::vector<LaueOps::Pointer> orientationOps = LaueOps::GetAllOrientationOps();
 
-  nx::core::Float32Array& eulers = m_DataStructure.getDataRefAs<Float32Array>(m_InputValues->cellEulerAnglesArrayPath);
-  nx::core::Int32Array& phases = m_DataStructure.getDataRefAs<Int32Array>(m_InputValues->cellPhasesArrayPath);
+  Float32Array& cellOrientationArray = m_DataStructure.getDataRefAs<Float32Array>((m_InputValues->useEulers) ? m_InputValues->cellEulerAnglesArrayPath : m_InputValues->cellQuatsArrayPath);
+  Int32Array& phases = m_DataStructure.getDataRefAs<Int32Array>(m_InputValues->cellPhasesArrayPath);
 
-  nx::core::UInt32Array& crystalStructures = m_DataStructure.getDataRefAs<UInt32Array>(m_InputValues->crystalStructuresArrayPath);
+  UInt32Array& crystalStructures = m_DataStructure.getDataRefAs<UInt32Array>(m_InputValues->crystalStructuresArrayPath);
 
-  nx::core::UInt8Array& MisorientationColors = m_DataStructure.getDataRefAs<UInt8Array>(m_InputValues->cellMisorientationColorsArrayPath);
+  UInt8Array& MisorientationColors = m_DataStructure.getDataRefAs<UInt8Array>(m_InputValues->cellMisorientationColorsArrayPath);
 
   m_PhaseWarningCount = 0;
-  size_t totalPoints = eulers.getNumberOfTuples();
+  size_t totalPoints = cellOrientationArray.getNumberOfTuples();
 
   int32_t numPhases = static_cast<int32_t>(crystalStructures.getNumberOfTuples());
 
   // Make sure we are dealing with a unit 1 vector.
-  FloatVec3Type normRefDir = m_InputValues->referenceDirection; // Make a copy of the reference Direction
+  // FloatVec3Type normRefDir = m_InputValues->referenceDirection; // Make a copy of the reference Direction
 
-  MatrixMath::Normalize3x1(normRefDir[0], normRefDir[1], normRefDir[2]);
+  // MatrixMath::Normalize3x1(normRefDir[0], normRefDir[1], normRefDir[2]);
 
   typename IParallelAlgorithm::AlgorithmArrays algArrays;
-  algArrays.push_back(&eulers);
+  algArrays.push_back(&cellOrientationArray);
   algArrays.push_back(&phases);
   algArrays.push_back(&crystalStructures);
   algArrays.push_back(&MisorientationColors);
 
-  nx::core::IDataArray* goodVoxelsArray = nullptr;
+  IDataArray* goodVoxelsArray = nullptr;
   if(m_InputValues->useGoodVoxels)
   {
     goodVoxelsArray = m_DataStructure.getDataAs<IDataArray>(m_InputValues->goodVoxelsArrayPath);
@@ -177,7 +197,14 @@ Result<> GenerateMisorientationColors::operator()()
   dataAlg.setRange(0, totalPoints);
   dataAlg.requireArraysInMemory(algArrays);
 
-  dataAlg.execute(GenerateMisorientationColorsImpl(this, normRefDir, eulers, phases, crystalStructures, numPhases, goodVoxelsArray, MisorientationColors));
+  if(m_InputValues->UseEulers)
+  {
+  dataAlg.execute(GenerateMisorientationColorsImpl<true>(this, m_InputValues->referenceAxis, cellOrientationArray, phases, crystalStructures, numPhases, goodVoxelsArray, MisorientationColors));
+  }
+  if(!m_InputValues->UseEulers)
+  {
+  dataAlg.execute(GenerateMisorientationColorsImpl<false>(this, m_InputValues->referenceAxis, cellOrientationArray, phases, crystalStructures, numPhases, goodVoxelsArray, MisorientationColors));
+  }
 
   if(m_PhaseWarningCount > 0)
   {
@@ -185,7 +212,7 @@ Result<> GenerateMisorientationColors::operator()()
 This indicates a problem with the input cell phase data. DREAM.3D will give INCORRECT RESULTS.",
                                       (numPhases - 1), m_PhaseWarningCount, (numPhases - 1));
 
-    return nx::core::MakeErrorResult(-48000, message);
+    return MakeErrorResult(-48000, message);
   }
 
   return {};

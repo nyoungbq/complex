@@ -190,6 +190,7 @@ Result<> GenerateMisorientationColorsFilter::executeImpl(DataStructure& dataStru
   inputValues.referenceAxis = filterArgs.value<VectorFloat32Parameter::ValueType>(k_ReferenceAxis_Key);
   inputValues.useGoodVoxels = filterArgs.value<bool>(k_UseMask_Key);
   inputValues.cellEulerAnglesArrayPath = filterArgs.value<DataPath>(k_CellEulerAnglesArrayPath_Key);
+  inputValues.cellQuatsArrayPath = filterArgs.value<DataPath>(k_CellQuatsArrayPath_Key);
   inputValues.cellPhasesArrayPath = filterArgs.value<DataPath>(k_CellPhasesArrayPath_Key);
   inputValues.goodVoxelsArrayPath = filterArgs.value<DataPath>(k_MaskArrayPath_Key);
   inputValues.crystalStructuresArrayPath = filterArgs.value<DataPath>(k_CrystalStructuresArrayPath_Key);
