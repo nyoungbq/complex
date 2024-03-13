@@ -23,8 +23,7 @@ struct ORIENTATIONANALYSIS_EXPORT GenerateMisorientationColorsInputValues
   bool useGoodVoxels;
   DataPath goodVoxelsArrayPath;
   DataPath cellPhasesArrayPath;
-  DataPath cellEulerAnglesArrayPath;
-  DataPath cellQuatsArrayPath;
+  DataPath cellOrientationsArrayPath;
   DataPath crystalStructuresArrayPath;
   DataPath cellMisorientationColorsArrayPath;
 };

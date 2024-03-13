@@ -108,14 +108,14 @@ IFilter::UniquePointer GenerateMisorientationColorsFilter::clone() const
 IFilter::PreflightResult GenerateMisorientationColorsFilter::preflightImpl(const DataStructure& dataStructure, const Arguments& filterArgs, const MessageHandler& messageHandler,
                                                                            const std::atomic_bool& shouldCancel) const
 {
-
+  auto pUseEulers = filterArgs.value<bool>(k_UseEulers_Key);
   auto pReferenceAxisValue = filterArgs.value<VectorFloat32Parameter::ValueType>(k_ReferenceAxis_Key);
   auto pUseGoodVoxelsValue = filterArgs.value<bool>(k_UseMask_Key);
-  auto pCellEulerAnglesArrayPathValue = filterArgs.value<DataPath>(k_CellEulerAnglesArrayPath_Key);
+  auto pCellOrientationsArrayPathValue = filterArgs.value<DataPath>(pUseEulers ? k_CellEulerAnglesArrayPath_Key : k_CellQuatsArrayPath_Key);
   auto pCellPhasesArrayPathValue = filterArgs.value<DataPath>(k_CellPhasesArrayPath_Key);
   auto pGoodVoxelsArrayPathValue = filterArgs.value<DataPath>(k_MaskArrayPath_Key);
   auto pCrystalStructuresArrayPathValue = filterArgs.value<DataPath>(k_CrystalStructuresArrayPath_Key);
-  auto pCellMisorientationColorsArrayNameValue = pCellEulerAnglesArrayPathValue.getParent().createChildPath(filterArgs.value<std::string>(k_CellMisorientationColorsArrayName_Key));
+  auto pCellMisorientationColorsArrayNameValue = pCellOrientationsArrayPathValue.getParent().createChildPath(filterArgs.value<std::string>(k_CellMisorientationColorsArrayName_Key));
 
   // Validate the Crystal Structures array
   const auto& crystalStructures = dataStructure.getDataRefAs<UInt32Array>(pCrystalStructuresArrayPathValue);
@@ -127,12 +127,22 @@ IFilter::PreflightResult GenerateMisorientationColorsFilter::preflightImpl(const
   std::vector<DataPath> dataPaths;
 
   // Validate the Eulers array
-  const auto& quats = dataStructure.getDataRefAs<Float32Array>(pCellEulerAnglesArrayPathValue);
-  if(quats.getNumberOfComponents() != 3)
+  const auto& cellOrientations = dataStructure.getDataRefAs<Float32Array>(pCellOrientationsArrayPathValue);
+  if(pUseEulers)
   {
-    return MakePreflightErrorResult(k_IncorrectInputArray, "Euler Angles Input Array must be a 3 component Float32 array");
+    if(cellOrientations.getNumberOfComponents() != 3)
+    {
+      return MakePreflightErrorResult(k_IncorrectInputArray, "Euler Angles Input Array must be a 3 component Float32 array");
+    }
   }
-  dataPaths.push_back(pCellEulerAnglesArrayPathValue);
+  else
+  {
+    if(cellOrientations.getNumberOfComponents() != 4)
+    {
+      return MakePreflightErrorResult(k_IncorrectInputArray, "Quats Input Array must be a 4 component Float32 array");
+    }
+  }
+  dataPaths.push_back(pCellOrientationsArrayPathValue);
 
   // Validate the Phases array
   const auto& phases = dataStructure.getDataRefAs<Int32Array>(pCellPhasesArrayPathValue);
@@ -167,12 +177,9 @@ IFilter::PreflightResult GenerateMisorientationColorsFilter::preflightImpl(const
     return MakePreflightErrorResult(-651, fmt::format("The following DataArrays all must have equal number of tuples but this was not satisfied.\n{}", tupleValidityCheck.error()));
   }
 
-  // Get the number of tuples
-  auto* eulersArray = dataStructure.getDataAs<Float32Array>(pCellEulerAnglesArrayPathValue);
-
   // Create output DataStructure Items
   auto createMisorientationColorsAction =
-      std::make_unique<CreateArrayAction>(DataType::uint8, eulersArray->getIDataStore()->getTupleShape(), std::vector<usize>{3}, pCellMisorientationColorsArrayNameValue);
+      std::make_unique<CreateArrayAction>(DataType::uint8, cellOrientations.getTupleShape(), std::vector<usize>{3}, pCellMisorientationColorsArrayNameValue);
 
   OutputActions actions;
   actions.appendAction(std::move(createMisorientationColorsAction));
@@ -189,12 +196,11 @@ Result<> GenerateMisorientationColorsFilter::executeImpl(DataStructure& dataStru
   inputValues.useEulers = filterArgs.value<bool>(k_UseEulers_Key);
   inputValues.referenceAxis = filterArgs.value<VectorFloat32Parameter::ValueType>(k_ReferenceAxis_Key);
   inputValues.useGoodVoxels = filterArgs.value<bool>(k_UseMask_Key);
-  inputValues.cellEulerAnglesArrayPath = filterArgs.value<DataPath>(k_CellEulerAnglesArrayPath_Key);
-  inputValues.cellQuatsArrayPath = filterArgs.value<DataPath>(k_CellQuatsArrayPath_Key);
+  inputValues.cellOrientationsArrayPath = filterArgs.value<DataPath>(inputValues.useEulers ? k_CellEulerAnglesArrayPath_Key : k_CellQuatsArrayPath_Key);
   inputValues.cellPhasesArrayPath = filterArgs.value<DataPath>(k_CellPhasesArrayPath_Key);
   inputValues.goodVoxelsArrayPath = filterArgs.value<DataPath>(k_MaskArrayPath_Key);
   inputValues.crystalStructuresArrayPath = filterArgs.value<DataPath>(k_CrystalStructuresArrayPath_Key);
-  inputValues.cellMisorientationColorsArrayPath = inputValues.cellEulerAnglesArrayPath.getParent().createChildPath(filterArgs.value<std::string>(k_CellMisorientationColorsArrayName_Key));
+  inputValues.cellMisorientationColorsArrayPath = inputValues.cellOrientationsArrayPath.getParent().createChildPath(filterArgs.value<std::string>(k_CellMisorientationColorsArrayName_Key));
 
   // Let the Algorithm instance do the work
   return GenerateMisorientationColors(dataStructure, messageHandler, shouldCancel, &inputValues)();
