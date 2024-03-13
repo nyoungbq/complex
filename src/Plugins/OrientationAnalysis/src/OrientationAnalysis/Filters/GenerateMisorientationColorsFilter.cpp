@@ -16,8 +16,6 @@
 using namespace nx::core;
 namespace
 {
-
-using FeatureIdsArrayType = Int32Array;
 using GoodVoxelsArrayType = BoolArray;
 
 inline constexpr int32 k_MissingGeomError = -71440;
@@ -120,27 +118,27 @@ IFilter::PreflightResult GenerateMisorientationColorsFilter::preflightImpl(const
   auto pCellMisorientationColorsArrayNameValue = pCellEulerAnglesArrayPathValue.getParent().createChildPath(filterArgs.value<std::string>(k_CellMisorientationColorsArrayName_Key));
 
   // Validate the Crystal Structures array
-  const UInt32Array& crystalStructures = dataStructure.getDataRefAs<UInt32Array>(pCrystalStructuresArrayPathValue);
+  const auto& crystalStructures = dataStructure.getDataRefAs<UInt32Array>(pCrystalStructuresArrayPathValue);
   if(crystalStructures.getNumberOfComponents() != 1)
   {
-    return {nonstd::make_unexpected(std::vector<Error>{Error{k_IncorrectInputArray, "Crystal Structures Input Array must be a 1 component Int32 array"}})};
+    return MakePreflightErrorResult(k_IncorrectInputArray, "Crystal Structures Input Array must be a 1 component Int32 array");
   }
 
   std::vector<DataPath> dataPaths;
 
   // Validate the Eulers array
-  const Float32Array& quats = dataStructure.getDataRefAs<Float32Array>(pCellEulerAnglesArrayPathValue);
+  const auto& quats = dataStructure.getDataRefAs<Float32Array>(pCellEulerAnglesArrayPathValue);
   if(quats.getNumberOfComponents() != 3)
   {
-    return {nonstd::make_unexpected(std::vector<Error>{Error{k_IncorrectInputArray, "Euler Angles Input Array must be a 3 component Float32 array"}})};
+    return MakePreflightErrorResult(k_IncorrectInputArray, "Euler Angles Input Array must be a 3 component Float32 array");
   }
   dataPaths.push_back(pCellEulerAnglesArrayPathValue);
 
   // Validate the Phases array
-  const Int32Array& phases = dataStructure.getDataRefAs<Int32Array>(pCellPhasesArrayPathValue);
+  const auto& phases = dataStructure.getDataRefAs<Int32Array>(pCellPhasesArrayPathValue);
   if(phases.getNumberOfComponents() != 1)
   {
-    return {nonstd::make_unexpected(std::vector<Error>{Error{k_IncorrectInputArray, "Phases Input Array must be a 1 component Int32 array"}})};
+    return MakePreflightErrorResult(k_IncorrectInputArray, "Phases Input Array must be a 1 component Int32 array");
   }
   dataPaths.push_back(pCellPhasesArrayPathValue);
 
@@ -150,16 +148,15 @@ IFilter::PreflightResult GenerateMisorientationColorsFilter::preflightImpl(const
   {
     goodVoxelsPath = filterArgs.value<DataPath>(k_MaskArrayPath_Key);
 
-    const nx::core::IDataArray* goodVoxelsArray = dataStructure.getDataAs<IDataArray>(goodVoxelsPath);
+    const auto* goodVoxelsArray = dataStructure.getDataAs<IDataArray>(goodVoxelsPath);
     if(nullptr == goodVoxelsArray)
     {
-      return {nonstd::make_unexpected(std::vector<Error>{Error{k_MissingOrIncorrectGoodVoxelsArray, fmt::format("Mask array is not located at path: '{}'", goodVoxelsPath.toString())}})};
+      return MakePreflightErrorResult(k_MissingOrIncorrectGoodVoxelsArray, fmt::format("Mask array is not located at path: '{}'", goodVoxelsPath.toString()));
     }
 
     if(goodVoxelsArray->getDataType() != DataType::boolean && goodVoxelsArray->getDataType() != DataType::uint8)
     {
-      return {nonstd::make_unexpected(
-          std::vector<Error>{Error{k_MissingOrIncorrectGoodVoxelsArray, fmt::format("Mask array at path '{}' is not of the correct type. It must be Bool or UInt8", goodVoxelsPath.toString())}})};
+      return MakePreflightErrorResult(k_MissingOrIncorrectGoodVoxelsArray, fmt::format("Mask array at path '{}' is not of the correct type. It must be Bool or UInt8", goodVoxelsPath.toString()));
     }
     dataPaths.push_back(goodVoxelsPath);
   }
@@ -167,7 +164,7 @@ IFilter::PreflightResult GenerateMisorientationColorsFilter::preflightImpl(const
   auto tupleValidityCheck = dataStructure.validateNumberOfTuples(dataPaths);
   if(!tupleValidityCheck)
   {
-    return {MakeErrorResult<OutputActions>(-651, fmt::format("The following DataArrays all must have equal number of tuples but this was not satisfied.\n{}", tupleValidityCheck.error()))};
+    return MakePreflightErrorResult(-651, fmt::format("The following DataArrays all must have equal number of tuples but this was not satisfied.\n{}", tupleValidityCheck.error()));
   }
 
   // Get the number of tuples
