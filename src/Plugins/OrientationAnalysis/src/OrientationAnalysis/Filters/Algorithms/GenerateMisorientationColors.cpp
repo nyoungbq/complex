@@ -20,12 +20,12 @@ namespace
  * @brief The GenerateMisorientationColorsImpl class implements a threaded algorithm that computes the Misorientation
  * colors for each element in a geometry
  */
-template<bool UsingEulerAngles = true>
+template <bool UsingEulerAngles = true>
 class GenerateMisorientationColorsImpl
 {
 public:
   GenerateMisorientationColorsImpl(GenerateMisorientationColors* filter, FloatVec3Type referenceAxis, Float32Array& cellOrientations, Int32Array& phases, UInt32Array& crystalStructures,
-                        int32_t numPhases, const IDataArray* goodVoxels, UInt8Array& colors)
+                                   int32_t numPhases, const IDataArray* goodVoxels, UInt8Array& colors)
   : m_Filter(filter)
   , m_ReferenceAxis(referenceAxis)
   , m_CellOrientations(cellOrientations.getDataStoreRef())
@@ -133,7 +133,8 @@ private:
 } // namespace
 
 // -----------------------------------------------------------------------------
-GenerateMisorientationColors::GenerateMisorientationColors(DataStructure& dataStructure, const IFilter::MessageHandler& mesgHandler, const std::atomic_bool& shouldCancel, GenerateMisorientationColorsInputValues* inputValues)
+GenerateMisorientationColors::GenerateMisorientationColors(DataStructure& dataStructure, const IFilter::MessageHandler& mesgHandler, const std::atomic_bool& shouldCancel,
+                                                           GenerateMisorientationColorsInputValues* inputValues)
 : m_DataStructure(dataStructure)
 , m_InputValues(inputValues)
 , m_ShouldCancel(shouldCancel)
@@ -186,11 +187,11 @@ Result<> GenerateMisorientationColors::operator()()
 
   if(m_InputValues->useEulers)
   {
-  dataAlg.execute(GenerateMisorientationColorsImpl<true>(this, m_InputValues->referenceAxis, cellOrientationArray, phases, crystalStructures, numPhases, goodVoxelsArray, MisorientationColors));
+    dataAlg.execute(GenerateMisorientationColorsImpl<true>(this, m_InputValues->referenceAxis, cellOrientationArray, phases, crystalStructures, numPhases, goodVoxelsArray, MisorientationColors));
   }
   if(!m_InputValues->useEulers)
   {
-  dataAlg.execute(GenerateMisorientationColorsImpl<false>(this, m_InputValues->referenceAxis, cellOrientationArray, phases, crystalStructures, numPhases, goodVoxelsArray, MisorientationColors));
+    dataAlg.execute(GenerateMisorientationColorsImpl<false>(this, m_InputValues->referenceAxis, cellOrientationArray, phases, crystalStructures, numPhases, goodVoxelsArray, MisorientationColors));
   }
 
   if(m_PhaseWarningCount > 0)

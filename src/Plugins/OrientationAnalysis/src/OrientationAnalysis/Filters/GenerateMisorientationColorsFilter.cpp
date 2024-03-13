@@ -64,7 +64,8 @@ Parameters GenerateMisorientationColorsFilter::parameters() const
   Parameters params;
 
   params.insertSeparator(Parameters::Separator{"Input Parameters"});
-  params.insertLinkableParameter(std::make_unique<BoolParameter>(k_UseEulers_Key, "Use Euler Angles", "If true the algorithm will take euler angles and do additional conversions, else the algorithm will require quats array", true));
+  params.insertLinkableParameter(std::make_unique<BoolParameter>(k_UseEulers_Key, "Use Euler Angles",
+                                                                 "If true the algorithm will take euler angles and do additional conversions, else the algorithm will require quats array", true));
   params.insert(std::make_unique<VectorFloat32Parameter>(k_ReferenceAxis_Key, "Reference Axis", "The reference axis with respect to compute the Misorientation colors in Axis-Angle representation",
                                                          std::vector<float32>{0.0f, 0.0f, 0.0f, 0.0f}, std::vector<std::string>({"x", "y", "z", "theta"})));
 
@@ -78,8 +79,9 @@ Parameters GenerateMisorientationColorsFilter::parameters() const
   params.insertSeparator(Parameters::Separator{"Required Input Cell Data"});
   params.insert(std::make_unique<ArraySelectionParameter>(k_CellEulerAnglesArrayPath_Key, "Euler Angles", "Three angles defining the orientation of the Element in Bunge convention (Z-X-Z)",
                                                           DataPath{}, ArraySelectionParameter::AllowedTypes{DataType::float32}, ArraySelectionParameter::AllowedComponentShapes{{3}}));
-  params.insert(std::make_unique<ArraySelectionParameter>(k_CellQuatsArrayPath_Key, "Quaternions", "Specifies the orientation of the Cell in quaternion representation", DataPath({"CellData", "Quats"}),
-                                                          ArraySelectionParameter::AllowedTypes{DataType::float32}, ArraySelectionParameter::AllowedComponentShapes{{4}}));
+  params.insert(std::make_unique<ArraySelectionParameter>(k_CellQuatsArrayPath_Key, "Quaternions", "Specifies the orientation of the Cell in quaternion representation",
+                                                          DataPath({"CellData", "Quats"}), ArraySelectionParameter::AllowedTypes{DataType::float32},
+                                                          ArraySelectionParameter::AllowedComponentShapes{{4}}));
   params.insert(std::make_unique<ArraySelectionParameter>(k_CellPhasesArrayPath_Key, "Phases", "Specifies to which Ensemble each cell belongs", DataPath{},
                                                           ArraySelectionParameter::AllowedTypes{DataType::int32}, ArraySelectionParameter::AllowedComponentShapes{{1}}));
   params.insertSeparator(Parameters::Separator{"Required Input Cell Ensemble Data"});
@@ -88,8 +90,8 @@ Parameters GenerateMisorientationColorsFilter::parameters() const
                                                           ArraySelectionParameter::AllowedComponentShapes{{1}}));
 
   params.insertSeparator(Parameters::Separator{"Created Cell Data"});
-  params.insert(
-      std::make_unique<DataObjectNameParameter>(k_CellMisorientationColorsArrayName_Key, "Misorientation Colors", "The name of the array containing the RGB colors encoded as unsigned chars for each Element", "MisorientationColors"));
+  params.insert(std::make_unique<DataObjectNameParameter>(k_CellMisorientationColorsArrayName_Key, "Misorientation Colors",
+                                                          "The name of the array containing the RGB colors encoded as unsigned chars for each Element", "MisorientationColors"));
 
   // associate parameters to their dynamic logic
   params.linkParameters(k_UseEulers_Key, k_CellEulerAnglesArrayPath_Key, true);
@@ -106,7 +108,7 @@ IFilter::UniquePointer GenerateMisorientationColorsFilter::clone() const
 
 //------------------------------------------------------------------------------
 IFilter::PreflightResult GenerateMisorientationColorsFilter::preflightImpl(const DataStructure& dataStructure, const Arguments& filterArgs, const MessageHandler& messageHandler,
-                                                                const std::atomic_bool& shouldCancel) const
+                                                                           const std::atomic_bool& shouldCancel) const
 {
 
   auto pReferenceAxisValue = filterArgs.value<VectorFloat32Parameter::ValueType>(k_ReferenceAxis_Key);
@@ -172,7 +174,8 @@ IFilter::PreflightResult GenerateMisorientationColorsFilter::preflightImpl(const
   auto* eulersArray = dataStructure.getDataAs<Float32Array>(pCellEulerAnglesArrayPathValue);
 
   // Create output DataStructure Items
-  auto createMisorientationColorsAction = std::make_unique<CreateArrayAction>(DataType::uint8, eulersArray->getIDataStore()->getTupleShape(), std::vector<usize>{3}, pCellMisorientationColorsArrayNameValue);
+  auto createMisorientationColorsAction =
+      std::make_unique<CreateArrayAction>(DataType::uint8, eulersArray->getIDataStore()->getTupleShape(), std::vector<usize>{3}, pCellMisorientationColorsArrayNameValue);
 
   OutputActions actions;
   actions.appendAction(std::move(createMisorientationColorsAction));
@@ -182,7 +185,7 @@ IFilter::PreflightResult GenerateMisorientationColorsFilter::preflightImpl(const
 
 //------------------------------------------------------------------------------
 Result<> GenerateMisorientationColorsFilter::executeImpl(DataStructure& dataStructure, const Arguments& filterArgs, const PipelineFilter* pipelineNode, const MessageHandler& messageHandler,
-                                              const std::atomic_bool& shouldCancel) const
+                                                         const std::atomic_bool& shouldCancel) const
 {
   GenerateMisorientationColorsInputValues inputValues;
 
@@ -226,7 +229,8 @@ Result<Arguments> GenerateMisorientationColorsFilter::FromSIMPLJson(const nlohma
   results.push_back(SIMPLConversion::ConvertParameter<SIMPLConversion::DataArraySelectionFilterParameterConverter>(args, json, SIMPL::k_GoodVoxelsArrayPathKey, k_MaskArrayPath_Key));
   results.push_back(
       SIMPLConversion::ConvertParameter<SIMPLConversion::DataArraySelectionFilterParameterConverter>(args, json, SIMPL::k_CrystalStructuresArrayPathKey, k_CrystalStructuresArrayPath_Key));
-  results.push_back(SIMPLConversion::ConvertParameter<SIMPLConversion::LinkedPathCreationFilterParameterConverter>(args, json, SIMPL::k_CellMisorientationColorsArrayNameKey, k_CellMisorientationColorsArrayName_Key));
+  results.push_back(SIMPLConversion::ConvertParameter<SIMPLConversion::LinkedPathCreationFilterParameterConverter>(args, json, SIMPL::k_CellMisorientationColorsArrayNameKey,
+                                                                                                                   k_CellMisorientationColorsArrayName_Key));
 
   Result<> conversionResult = MergeResults(std::move(results));
 
