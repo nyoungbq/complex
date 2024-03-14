@@ -91,7 +91,7 @@ public:
 
         m_CellMisorientationColors.setValue(3 * i, axisAngle[0] * (axisAngle[3] * Constants::k_180OverPiD));
         m_CellMisorientationColors.setValue(3 * i + 1, axisAngle[1] * (axisAngle[3] * Constants::k_180OverPiD));
-        m_CellMisorientationColors.setValue(3 * i + 2, axisAngle[0] * (axisAngle[3] * Constants::k_180OverPiD));
+        m_CellMisorientationColors.setValue(3 * i + 2, axisAngle[2] * (axisAngle[3] * Constants::k_180OverPiD));
       }
     }
   }
