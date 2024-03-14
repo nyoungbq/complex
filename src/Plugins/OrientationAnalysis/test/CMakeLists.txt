@@ -37,6 +37,7 @@ set(${PLUGIN_NAME}UnitTest_SRCS
   GenerateFZQuaternionsTest.cpp
   GenerateGBCDPoleFigureTest.cpp
   GenerateIPFColorsTest.cpp
+  GenerateMisorientationColorsTest.cpp
   GenerateQuaternionConjugateTest.cpp
   MergeTwinsTest.cpp
   NeighborOrientationCorrelationTest.cpp
