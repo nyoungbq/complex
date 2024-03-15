@@ -10,29 +10,7 @@ ITKImageGradient (ImageGradient)
 
 This filter is implemented using the recursive gaussian filters
 
-## Parameters
-
-| Name | Type | Description |
-|------|------|-------------|
-| Sigma | float64 | Set/Get Sigma value. Sigma is measured in the units of image spacing. |
-| NormalizeAcrossScale | bool | Set/Get the normalization factor that will be used for the Gaussian. \sa RecursiveGaussianImageFilter::SetNormalizeAcrossScale |
-
-## Required Geometry
-
-Image Geometry
-
-## Required Objects
-
-| Name |Type | Description |
-|-----|------|-------------|
-| Input Image Geometry | DataPath | DataPath to the Input Image Geometry |
-| Input Image Data Array | DataPath | Path to input image with pixel type matching BasicPixelIDTypeList |
-
-## Created Objects
-
-| Name |Type | Description |
-|-----|------|-------------|
-| Output Image Data Array | DataPath | Path to output image with pixel type matching BasicPixelIDTypeList |
+% Auto generated parameter table will be inserted here
 
 ## Example Pipelines
 

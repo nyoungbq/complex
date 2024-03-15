@@ -236,7 +236,7 @@ your functor implementation.
 - Update Plugin's top level CMakeLists.txt to include the algorithm
 - Ensure the UUID is the proper UUID from the know mappings file.
 
-### Parameters#
+### Parameters
 
 Use proper grouping in the parameters to help the User Interface.
 

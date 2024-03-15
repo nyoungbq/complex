@@ -32,7 +32,7 @@ but any shape with clear sharp corners may be affected.
 
 % Auto generated parameter table will be inserted here
 
-## References ##
+## References
 
 [1] Representation and Reconstruction of Three-dimensional Microstructures in Ni-based Superalloys, AFOSR
 FA9550-07-1-0179 Final Report, 20 Dec 2010.

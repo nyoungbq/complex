@@ -12,29 +12,7 @@ For standard level set algorithms, it is useful to periodically reinitialize the
 
 Implementation of this class is based on Fast and Accurate Redistancing for Level Set Methods Krissian K. and Westin C.F., EUROCAST NeuroImaging Workshop Las Palmas Spain, Ninth International Conference on Computer Aided Systems Theory , pages 48-51, Feb 2003.
 
-## Parameters
-
-| Name | Type | Description |
-|------|------|-------------|
-| LevelSetValue | float64 | Set/Get the value of the level set to be located. The default value is 0. |
-| FarValue | float64 | Set/Get the value of the level set to be located. The default value is 0. |
-
-## Required Geometry
-
-Image Geometry
-
-## Required Objects
-
-| Name |Type | Description |
-|-----|------|-------------|
-| Input Image Geometry | DataPath | DataPath to the Input Image Geometry |
-| Input Image Data Array | DataPath | Path to input image with pixel type matching BasicPixelIDTypeList |
-
-## Created Objects
-
-| Name |Type | Description |
-|-----|------|-------------|
-| Output Image Data Array | DataPath | Path to output image with pixel type matching BasicPixelIDTypeList |
+% Auto generated parameter table will be inserted here
 
 ## Example Pipelines
 

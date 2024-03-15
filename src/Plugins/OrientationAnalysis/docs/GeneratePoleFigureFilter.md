@@ -20,36 +20,7 @@ This **Filter** creates a standard pole figure image for each **Ensemble** in a 
 |-----|--------|
 | ![Example Pole Figure Using Square Layout](Images/PoleFigure_Example.png) | ![Example Pole Figure Using Square Layout](Images/Pole_Figure_Discrete_Example.png) |
 
-## Parameters
-
-| Name | Type | Description |
-|------------|------| --------------------------------- |
-| Pole Figure Type | Enumeration: 0=Lambert, 1=Discrete | Controls the type of pole figure |
-| Image Format | Enumeration | Image file format to write. Currently supports .tif, .bmp, and .png file formats |
-| Lambert Image Size (Pixels) | int32_t | Size of the Lambert square in pixels |
-| Number of Colors | int32_t | Number of colors to use to make the pole figure |
-| Image Layout | Enumeration | Layout for the resulting pole figure images, either square, horizontal, or vertical |
-| Image Prefix | String | Prefix the prepend each pole figure file with |
-| Output Path | File Path | Output directory path for images |
-| Image Size (Square Pixels) | int32_t | Size of the output image in square pixels |
-| Use Mask Array | bool | Specifies whether to use a boolean array to exclude some **Cells**. Only those cells that have a *Mask Array* value of 1 will be used. |
-
-## Required Geometry
-
-NONE
-
-## Required Objects
-
-| Kind                      | Default Name | Type     | Comp Dims | Description                                 |
-|---------------------------|--------------|----------|--------|---------------------------------------------|
-| Cell Attribute Array | EulerAngles | float | (3)  | Three angles defining the orientation of the **Cell** in Bunge convention (Z-X-Z) |
-| Cell Attribute Array | Phases | int32_t | (1) | Specifies to which **Ensemble** each **Cell** belongs |
-| Cell Attribute Array | Mask | bool | (1) | Used to define **Cells** as *good* or *bad* |
-| Ensemble Attribute Array | CrystalStructures | uint32_t | (1) | Enumeration representing the crystal structure for each Ensemble |
-
-## Created Objects
-
-None
+% Auto generated parameter table will be inserted here
 
 ## Example Pipelines
 
