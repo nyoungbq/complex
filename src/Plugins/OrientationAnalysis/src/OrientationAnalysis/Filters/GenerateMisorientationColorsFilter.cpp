@@ -65,7 +65,7 @@ Parameters GenerateMisorientationColorsFilter::parameters() const
   params.insertLinkableParameter(std::make_unique<BoolParameter>(k_UseEulers_Key, "Use Euler Angles",
                                                                  "If true the algorithm will take euler angles and do additional conversions, else the algorithm will require quats array", true));
   params.insert(std::make_unique<VectorFloat32Parameter>(k_ReferenceAxis_Key, "Reference Axis", "The reference axis with respect to compute the Misorientation colors in Axis-Angle representation",
-                                                         std::vector<float32>{0.0f, 0.0f, 0.0f, 0.0f}, std::vector<std::string>({"x", "y", "z", "theta"})));
+                                                         std::vector<float32>{0.0f, 0.0f, 1.0f, 0.0f}, std::vector<std::string>({"x", "y", "z", "theta"})));
 
   params.insertSeparator(Parameters::Separator{"Optional Data Mask"});
   params.insertLinkableParameter(std::make_unique<BoolParameter>(k_UseMask_Key, "Use Mask Array", "Whether to assign a black color to 'bad' Elements", false));

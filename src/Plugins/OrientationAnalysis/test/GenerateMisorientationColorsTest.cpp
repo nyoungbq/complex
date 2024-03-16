@@ -16,52 +16,62 @@ using namespace nx::core;
 using namespace nx::core::UnitTest;
 using namespace nx::core::Constants;
 
-namespace nx::core::Constants
+namespace
 {
-inline constexpr StringLiteral k_ImageDataContainer("ImageDataContainer");
-inline constexpr StringLiteral k_OutputMisorientationColors("Misorientation Colors_Test_Output");
-} // namespace nx::core::Constants
+// inline constexpr StringLiteral k_DataContainer("DataContainer");
+// inline constexpr StringLiteral k_CellAttributeMatrix("CellData");
+inline constexpr StringLiteral k_EulersCubic("Eulers_Cubic");
+inline constexpr StringLiteral k_PhasesCubic("Phases_Cubic");
+inline constexpr StringLiteral k_QuatsCubic("Quats_Cubic");
+inline constexpr StringLiteral k_ColorsCubic("MisorientationColor_Cubic");
 
-TEST_CASE("OrientationAnalysis::GenerateMisorientationColors", "[OrientationAnalysis][GenerateMisorientationColors]")
+inline constexpr StringLiteral k_EulersHex("Eulers_Hex");
+inline constexpr StringLiteral k_PhasesHex("Phases_Hex");
+inline constexpr StringLiteral k_QuatsHex("Quats_Hex");
+inline constexpr StringLiteral k_ColorsHex("MisorientationColor_Hex");
+
+inline constexpr StringLiteral k_GeneratedColors("Generated Misorientation Colors");
+
+inline constexpr StringLiteral k_OutputMisorientationColors("Misorientation Colors_Test_Output");
+} // namespace
+
+TEST_CASE("OrientationAnalysis::GenerateMisorientationColors (Cubic)", "[OrientationAnalysis][GenerateMisorientationColors]")
 {
   Application::GetOrCreateInstance()->loadPlugins(unit_test::k_BuildDir.view(), true);
 
-  const nx::core::UnitTest::TestFileSentinel testDataSentinel(nx::core::unit_test::k_CMakeExecutable, nx::core::unit_test::k_TestFilesDir, "so3_cubic_high_Misorientation_001.tar.gz",
-                                                              "so3_cubic_high_Misorientation_001.dream3d");
+  const nx::core::UnitTest::TestFileSentinel testDataSentinel(nx::core::unit_test::k_CMakeExecutable, nx::core::unit_test::k_TestFilesDir, "6_6_MisorientationColors.tar.gz",
+                                                              "6_6_MisorientationColors.dream3d");
+  auto baseDataFilePath = fs::path(fmt::format("{}/6_6_MisorientationColors/6_6_MisorientationColors.dream3d", unit_test::k_TestFilesDir));
 
-  DataStructure dataStructure;
-  {
-
-    // This test file was produced by SIMPL/DREAM3D. our results should match theirs
-    auto exemplarFilePath = fs::path(fmt::format("{}/so3_cubic_high_Misorientation_001.dream3d", unit_test::k_TestFilesDir));
-    REQUIRE(fs::exists(exemplarFilePath));
-    auto result = DREAM3D::ImportDataStructureFromFile(exemplarFilePath);
-    REQUIRE(result.valid());
-    dataStructure = result.value();
-  }
+  DataStructure dataStructure = UnitTest::LoadDataStructure(baseDataFilePath);
 
   // Instantiate the filter, a DataStructure object and an Arguments Object
   {
     GenerateMisorientationColorsFilter filter;
     Arguments args;
 
-    DataPath cellEulerAnglesPath({Constants::k_ImageDataContainer, Constants::k_CellData, Constants::k_EulerAngles});
-    DataPath cellPhasesArrayPath({Constants::k_ImageDataContainer, Constants::k_CellData, Constants::k_Phases});
-    DataPath goodVoxelsPath({Constants::k_ImageDataContainer, Constants::k_CellData, Constants::k_Mask});
-    DataPath crystalStructuresArrayPath({Constants::k_ImageDataContainer, Constants::k_CellEnsembleData, Constants::k_CrystalStructures});
-    DataPath cellMisorientationColorsArrayName({Constants::k_ImageDataContainer, Constants::k_CellData, Constants::k_OutputMisorientationColors});
+    DataPath cellEulerAnglesPath({Constants::k_DataContainer, Constants::k_CellData, k_EulersCubic});
+    DataPath cellQuatsPath({Constants::k_DataContainer, Constants::k_CellData, k_QuatsCubic});
+    DataPath cellPhasesArrayPath({Constants::k_DataContainer, Constants::k_CellData, k_PhasesCubic});
+    //  DataPath goodVoxelsPath({Constants::k_ImageDataContainer, Constants::k_CellData, Constants::k_Mask});
+    DataPath crystalStructuresArrayPath({Constants::k_DataContainer, Constants::k_EnsembleAttributeMatrix, Constants::k_CrystalStructures});
 
     // Create default Parameters for the filter.
     args.insertOrAssign(GenerateMisorientationColorsFilter::k_ReferenceAxis_Key, std::make_any<VectorFloat32Parameter::ValueType>({0.0F, 0.0F, 1.0F, 0.0F}));
-    args.insertOrAssign(GenerateMisorientationColorsFilter::k_UseMask_Key, std::make_any<bool>(true));
-    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CellEulerAnglesArrayPath_Key, std::make_any<DataPath>(cellEulerAnglesPath));
-    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CellPhasesArrayPath_Key, std::make_any<DataPath>(cellPhasesArrayPath));
-    args.insertOrAssign(GenerateMisorientationColorsFilter::k_MaskArrayPath_Key, std::make_any<DataPath>(goodVoxelsPath));
-    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CrystalStructuresArrayPath_Key, std::make_any<DataPath>(crystalStructuresArrayPath));
-    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CellMisorientationColorsArrayName_Key, std::make_any<std::string>(Constants::k_OutputMisorientationColors));
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_UseMask_Key, std::make_any<bool>(false));
+    // args.insertOrAssign(GenerateMisorientationColorsFilter::k_MaskArrayPath_Key, std::make_any<DataPath>(goodVoxelsPath));
 
-    REQUIRE(dataStructure.getData(goodVoxelsPath) != nullptr);
-    REQUIRE(dataStructure.getData(cellEulerAnglesPath) != nullptr);
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_UseEulers_Key, std::make_any<bool>(false));
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CellEulerAnglesArrayPath_Key, std::make_any<DataPath>(cellEulerAnglesPath));
+
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CellQuatsArrayPath_Key, std::make_any<DataPath>(cellQuatsPath));
+
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CellPhasesArrayPath_Key, std::make_any<DataPath>(cellPhasesArrayPath));
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CrystalStructuresArrayPath_Key, std::make_any<DataPath>(crystalStructuresArrayPath));
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CellMisorientationColorsArrayName_Key, std::make_any<std::string>(k_GeneratedColors));
+
+    //   REQUIRE(dataStructure.getData(goodVoxelsPath) != nullptr);
+    REQUIRE(dataStructure.getData(cellQuatsPath) != nullptr);
     REQUIRE(dataStructure.getData(cellPhasesArrayPath) != nullptr);
 
     // Preflight the filter and check result
@@ -76,21 +86,75 @@ TEST_CASE("OrientationAnalysis::GenerateMisorientationColors", "[OrientationAnal
     WriteTestDataStructure(dataStructure, fs::path(fmt::format("{}/GenerateMisorientationColors_Test.dream3d", unit_test::k_BinaryTestOutputDir)));
 #endif
 
-    DataPath MisorientationColors({Constants::k_ImageDataContainer, Constants::k_CellData, "name+here"});
+    // compare the resulting misorientation Colors array
+    DataPath exemplarPath({Constants::k_DataContainer, Constants::k_CellData, k_ColorsCubic});
+    DataPath generatedPath({Constants::k_DataContainer, Constants::k_CellData, k_GeneratedColors});
 
-    auto& exemplar = dataStructure.getDataRefAs<UInt8Array>(MisorientationColors);
-    auto& output = dataStructure.getDataRefAs<UInt8Array>(cellMisorientationColorsArrayName);
+    auto& exemplarRef = dataStructure.getDataRefAs<IDataArray>(exemplarPath);
+    auto& generatedRef = dataStructure.getDataRefAs<IDataArray>(generatedPath);
 
-    size_t totalElements = exemplar.getSize();
-    bool valid = true;
-    for(size_t i = 0; i < totalElements; i++)
-    {
-      if(exemplar[i] != output[i])
-      {
-        valid = false;
-        break;
-      }
-    }
-    REQUIRE(valid == true);
+    CompareDataArrays<uint8>(exemplarRef, generatedRef);
+  }
+}
+
+TEST_CASE("OrientationAnalysis::GenerateMisorientationColors (Hex)", "[OrientationAnalysis][GenerateMisorientationColors]")
+{
+  Application::GetOrCreateInstance()->loadPlugins(unit_test::k_BuildDir.view(), true);
+
+  const nx::core::UnitTest::TestFileSentinel testDataSentinel(nx::core::unit_test::k_CMakeExecutable, nx::core::unit_test::k_TestFilesDir, "6_6_MisorientationColors.tar.gz",
+                                                              "6_6_MisorientationColors.dream3d");
+  auto baseDataFilePath = fs::path(fmt::format("{}/6_6_MisorientationColors/6_6_MisorientationColors.dream3d", unit_test::k_TestFilesDir));
+
+  DataStructure dataStructure = UnitTest::LoadDataStructure(baseDataFilePath);
+
+  // Instantiate the filter, a DataStructure object and an Arguments Object
+  {
+    GenerateMisorientationColorsFilter filter;
+    Arguments args;
+
+    DataPath cellEulerAnglesPath({Constants::k_DataContainer, Constants::k_CellData, k_EulersHex});
+    DataPath cellQuatsPath({Constants::k_DataContainer, Constants::k_CellData, k_QuatsHex});
+    DataPath cellPhasesArrayPath({Constants::k_DataContainer, Constants::k_CellData, k_PhasesHex});
+    //  DataPath goodVoxelsPath({Constants::k_ImageDataContainer, Constants::k_CellData, Constants::k_Mask});
+    DataPath crystalStructuresArrayPath({Constants::k_DataContainer, Constants::k_EnsembleAttributeMatrix, Constants::k_CrystalStructures});
+
+    // Create default Parameters for the filter.
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_ReferenceAxis_Key, std::make_any<VectorFloat32Parameter::ValueType>({0.0F, 0.0F, 1.0F, 0.0F}));
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_UseMask_Key, std::make_any<bool>(false));
+    // args.insertOrAssign(GenerateMisorientationColorsFilter::k_MaskArrayPath_Key, std::make_any<DataPath>(goodVoxelsPath));
+
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_UseEulers_Key, std::make_any<bool>(false));
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CellEulerAnglesArrayPath_Key, std::make_any<DataPath>(cellEulerAnglesPath));
+
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CellQuatsArrayPath_Key, std::make_any<DataPath>(cellQuatsPath));
+
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CellPhasesArrayPath_Key, std::make_any<DataPath>(cellPhasesArrayPath));
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CrystalStructuresArrayPath_Key, std::make_any<DataPath>(crystalStructuresArrayPath));
+    args.insertOrAssign(GenerateMisorientationColorsFilter::k_CellMisorientationColorsArrayName_Key, std::make_any<std::string>(k_GeneratedColors));
+
+    //   REQUIRE(dataStructure.getData(goodVoxelsPath) != nullptr);
+    REQUIRE(dataStructure.getData(cellQuatsPath) != nullptr);
+    REQUIRE(dataStructure.getData(cellPhasesArrayPath) != nullptr);
+
+    // Preflight the filter and check result
+    auto preflightResult = filter.preflight(dataStructure, args);
+    SIMPLNX_RESULT_REQUIRE_VALID(preflightResult.outputActions);
+
+    // Execute the filter and check the result
+    auto executeResult = filter.execute(dataStructure, args);
+    SIMPLNX_RESULT_REQUIRE_VALID(executeResult.result);
+
+#ifdef SIMPLNX_WRITE_TEST_OUTPUT
+    WriteTestDataStructure(dataStructure, fs::path(fmt::format("{}/GenerateMisorientationColors_Test.dream3d", unit_test::k_BinaryTestOutputDir)));
+#endif
+
+    // compare the resulting misorientation Colors array
+    DataPath exemplarPath({Constants::k_DataContainer, Constants::k_CellData, k_ColorsHex});
+    DataPath generatedPath({Constants::k_DataContainer, Constants::k_CellData, k_GeneratedColors});
+
+    auto& exemplarRef = dataStructure.getDataRefAs<IDataArray>(exemplarPath);
+    auto& generatedRef = dataStructure.getDataRefAs<IDataArray>(generatedPath);
+
+    CompareDataArrays<uint8>(exemplarRef, generatedRef);
   }
 }

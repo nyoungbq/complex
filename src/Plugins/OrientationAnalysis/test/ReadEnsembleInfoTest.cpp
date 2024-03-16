@@ -40,7 +40,7 @@ TEST_CASE("OrientationAnalysis::ReadEnsembleInfoFilter: Valid Filter Execution",
   DataGroup* topLevelGroup = DataGroup::Create(ds, Constants::k_DataContainer);
   Arguments args;
   args.insertOrAssign(ReadEnsembleInfoFilter::k_DataContainerName_Key, std::make_any<DataPath>(DataPath({Constants::k_DataContainer})));
-  args.insertOrAssign(ReadEnsembleInfoFilter::k_CellEnsembleAttributeMatrixName_Key, std::make_any<std::string>(Constants::k_EnsembleAttributeMatrix));
+  args.insertOrAssign(ReadEnsembleInfoFilter::k_CellEnsembleAttributeMatrixName_Key, std::make_any<std::string>(Constants::k_CellEnsembleData));
   args.insertOrAssign(ReadEnsembleInfoFilter::k_CrystalStructuresArrayName_Key, std::make_any<std::string>(Constants::k_CrystalStructures));
   args.insertOrAssign(ReadEnsembleInfoFilter::k_PhaseTypesArrayName_Key, std::make_any<std::string>(Constants::k_Phases));
 
@@ -67,14 +67,14 @@ TEST_CASE("OrientationAnalysis::ReadEnsembleInfoFilter: Valid Filter Execution",
   auto executeResult = filter.execute(ds, args);
   SIMPLNX_RESULT_REQUIRE_VALID(executeResult.result)
 
-  const auto* crystalStructures = ds.getDataAs<UInt32Array>(DataPath({Constants::k_DataContainer, Constants::k_EnsembleAttributeMatrix, Constants::k_CrystalStructures}));
+  const auto* crystalStructures = ds.getDataAs<UInt32Array>(DataPath({Constants::k_DataContainer, Constants::k_CellEnsembleData, Constants::k_CrystalStructures}));
   REQUIRE(crystalStructures != nullptr);
   REQUIRE(crystalStructures->getNumberOfTuples() == 3);
   REQUIRE((*crystalStructures)[0] == 999);
   REQUIRE((*crystalStructures)[1] == 1);
   REQUIRE((*crystalStructures)[2] == 0);
 
-  const auto* phaseTypes = ds.getDataAs<UInt32Array>(DataPath({Constants::k_DataContainer, Constants::k_EnsembleAttributeMatrix, Constants::k_Phases}));
+  const auto* phaseTypes = ds.getDataAs<UInt32Array>(DataPath({Constants::k_DataContainer, Constants::k_CellEnsembleData, Constants::k_Phases}));
   REQUIRE(phaseTypes != nullptr);
   REQUIRE(phaseTypes->getNumberOfTuples() == 3);
   REQUIRE((*phaseTypes)[0] == 999);
@@ -92,7 +92,7 @@ TEST_CASE("OrientationAnalysis::ReadEnsembleInfoFilter: InValid Filter Execution
   DataGroup* topLevelGroup = DataGroup::Create(ds, Constants::k_DataContainer);
   Arguments args;
   args.insertOrAssign(ReadEnsembleInfoFilter::k_DataContainerName_Key, std::make_any<DataPath>(DataPath({Constants::k_DataContainer})));
-  args.insertOrAssign(ReadEnsembleInfoFilter::k_CellEnsembleAttributeMatrixName_Key, std::make_any<std::string>(Constants::k_EnsembleAttributeMatrix));
+  args.insertOrAssign(ReadEnsembleInfoFilter::k_CellEnsembleAttributeMatrixName_Key, std::make_any<std::string>(Constants::k_CellEnsembleData));
   args.insertOrAssign(ReadEnsembleInfoFilter::k_CrystalStructuresArrayName_Key, std::make_any<std::string>(Constants::k_CrystalStructures));
   args.insertOrAssign(ReadEnsembleInfoFilter::k_PhaseTypesArrayName_Key, std::make_any<std::string>(Constants::k_Phases));
 

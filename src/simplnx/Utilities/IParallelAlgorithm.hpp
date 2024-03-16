@@ -32,6 +32,13 @@ public:
    */
   void setParallelizationEnabled(bool doParallel);
 
+  /**
+   * @brief If all arrays are in-memory will ParallelizationEnabled=TRUE other wise
+   * ParallelizationEnabled=FALSE.
+   *
+   * If you need to turn off parallelization OFF, then you need to call `setParallelizationEnabled()` AFTER calling this method.
+   * @param arrays Arrays to check.
+   */
   void requireArraysInMemory(const AlgorithmArrays& arrays);
 
 protected:

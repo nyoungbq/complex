@@ -79,7 +79,7 @@ inline constexpr StringLiteral k_VertexData("VertexData");
 inline constexpr StringLiteral k_GBCD_Name("GBCD");
 
 inline constexpr StringLiteral k_Centroids("Centroids");
-inline constexpr StringLiteral k_EnsembleAttributeMatrix("CellEnsembleData");
+inline constexpr StringLiteral k_EnsembleAttributeMatrix("EnsembleAttributeMatrix");
 inline constexpr StringLiteral k_ExemplarDataContainer("Exemplar Data");
 inline constexpr StringLiteral k_CrystalStructures("CrystalStructures");
 inline constexpr StringLiteral k_Fit("Fit");
@@ -187,7 +187,7 @@ const DataPath k_FitArrayPath = k_CellAttributeMatrix.createChildPath(k_Fit);
 const DataPath k_SEMSignalArrayPath = k_CellAttributeMatrix.createChildPath(k_SEMSignal);
 
 // Cell Ensemble Data DataPaths
-const DataPath k_CellEnsembleAttributeMatrixPath = k_DataContainerPath.createChildPath(k_EnsembleAttributeMatrix);
+const DataPath k_CellEnsembleAttributeMatrixPath = k_DataContainerPath.createChildPath(k_CellEnsembleData);
 const DataPath k_CrystalStructuresArrayPath = k_CellEnsembleAttributeMatrixPath.createChildPath(k_CrystalStructures);
 const DataPath k_CalculatedShiftsPath = k_DataContainerPath.createChildPath(k_CalculatedShifts);
 
@@ -433,7 +433,7 @@ void CompareDataArrays(const IDataArray& left, const IDataArray& right, usize st
     newVal = newDataStore[i];
     if(oldVal != newVal)
     {
-      UNSCOPED_INFO(fmt::format("oldValue != newValue. {} != {}", oldVal, newVal));
+      UNSCOPED_INFO(fmt::format("Index: {}: oldValue != newValue. {} != {}", i, oldVal, newVal));
 
       if constexpr(std::is_floating_point_v<T>)
       {

@@ -51,7 +51,11 @@ public:
     }
 
     std::vector<LaueOps::Pointer> ops = LaueOps::GetAllOrientationOps();
-    QuatD q2 = OrientationTransformation::ax2qu<std::vector<float32>, QuatD>(m_ReferenceAxis);
+    QuatD q2 = {m_ReferenceAxis[0] * sinf(m_ReferenceAxis[3]), m_ReferenceAxis[1] * sinf(m_ReferenceAxis[3]), m_ReferenceAxis[2] * sinf(m_ReferenceAxis[3]), cosf(m_ReferenceAxis[3])};
+
+    std::cout << "--------------------------------------------------------------------------------" << std::endl;
+    std::cout << "   " << q2[0] << "  " << q2[1] << "  " << q2[2] << "  " << q2[3] << "\n";
+
     std::array<double, 3> dEuler = {0.0, 0.0, 0.0};
     Rgba argb = 0x00000000;
     int32_t phase = 0;
@@ -87,11 +91,15 @@ public:
           q1 = QuatD(m_CellOrientations[4 * i + 0], m_CellOrientations[4 * i + 1], m_CellOrientations[4 * i + 2], m_CellOrientations[4 * i + 3]);
         }
 
-        OrientationD axisAngle = ops[m_CrystalStructures[phase]]->generateMisorientationColor(q1, q2);
+        argb = ops[m_CrystalStructures[phase]]->generateMisorientationColor(q1, q2);
 
-        m_CellMisorientationColors.setValue(3 * i, axisAngle[0] * (axisAngle[3] * Constants::k_180OverPiD));
-        m_CellMisorientationColors.setValue(3 * i + 1, axisAngle[1] * (axisAngle[3] * Constants::k_180OverPiD));
-        m_CellMisorientationColors.setValue(3 * i + 2, axisAngle[2] * (axisAngle[3] * Constants::k_180OverPiD));
+        m_CellMisorientationColors.setValue(3 * i, nx::core::RgbColor::dRed(argb));
+        m_CellMisorientationColors.setValue(3 * i + 1, nx::core::RgbColor::dGreen(argb));
+        m_CellMisorientationColors.setValue(3 * i + 2, nx::core::RgbColor::dBlue(argb));
+
+        std::cout << i << "   " << q1[0] << "  " << q1[1] << "  " << q1[2] << "  " << q1[3] << "  "
+                  << static_cast<int32>(RgbColor::dRed(argb)) << "  " << static_cast<int32>(RgbColor::dGreen(argb)) << "  " << static_cast<int32>(RgbColor::dBlue(argb)) 
+                  << "  "  << ops[m_CrystalStructures[phase]]->getSymmetryName() << "\n";
       }
     }
   }
@@ -179,6 +187,8 @@ Result<> GenerateMisorientationColors::operator()()
   ParallelDataAlgorithm dataAlg;
   dataAlg.setRange(0, totalPoints);
   dataAlg.requireArraysInMemory(algArrays);
+  dataAlg.setParallelizationEnabled(false);
+
 
   if(m_InputValues->useEulers)
   {

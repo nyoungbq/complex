@@ -37,7 +37,7 @@ TEST_CASE("OrientationAnalysis::ReadCtfData: Valid Execution", "[OrientationAnal
   args.insertOrAssign(ReadCtfDataFilter::k_EdaxHexagonalAlignment_Key, std::make_any<bool>(true));
   args.insertOrAssign(ReadCtfDataFilter::k_DataContainerName_Key, std::make_any<DataPath>(k_DataContainerPath));
   args.insertOrAssign(ReadCtfDataFilter::k_CellAttributeMatrixName_Key, std::make_any<std::string>(k_CellData));
-  args.insertOrAssign(ReadCtfDataFilter::k_CellEnsembleAttributeMatrixName_Key, std::make_any<std::string>(k_EnsembleAttributeMatrix));
+  args.insertOrAssign(ReadCtfDataFilter::k_CellEnsembleAttributeMatrixName_Key, std::make_any<std::string>(k_CellEnsembleData));
 
   // Preflight the filter and check result
   auto preflightResult = filter.preflight(dataStructure, args);
