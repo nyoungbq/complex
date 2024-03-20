@@ -169,7 +169,8 @@ Result<> FindFeatureReferenceCAxisMisorientations::operator()()
         }
         else
         {
-          featRefCAxisMis[point] = 0.0f;
+          // not hexagonal so set to NAN
+          featRefCAxisMis[point] = NAN;
         }
       }
     }
