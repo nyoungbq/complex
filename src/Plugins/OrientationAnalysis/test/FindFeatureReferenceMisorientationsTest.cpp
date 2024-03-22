@@ -124,7 +124,7 @@ TEST_CASE("OrientationAnalysis::FindFeatureReferenceMisorientationsFilter: Const
                                                               ::ConstantTest::k_TestingDirName);
 
   // Load DataStructure From Input File
-  auto baseDataFilePath = fs::path(fmt::format("{}/{}/misorientation_z_aligned.dream3d", unit_test::k_TestFilesDir, ::ConstantTest::k_TestingDirName));
+  auto baseDataFilePath = fs::path(fmt::format("{}/{}/misorientation_test_z_aligned.dream3d", unit_test::k_TestFilesDir, ::ConstantTest::k_TestingDirName));
   DataStructure dataStructure = UnitTest::LoadDataStructure(baseDataFilePath);
 
   // Instantiate the filter and an Arguments Object
@@ -178,7 +178,7 @@ TEST_CASE("OrientationAnalysis::FindFeatureReferenceMisorientationsFilter: Const
                                                               ::ConstantTest::k_TestingDirName);
 
   // Load DataStructure From Input File
-  auto baseDataFilePath = fs::path(fmt::format("{}/{}/misorientation_edge_case.dream3d", unit_test::k_TestFilesDir, ::ConstantTest::k_TestingDirName));
+  auto baseDataFilePath = fs::path(fmt::format("{}/{}/misorientation_test_edge_case.dream3d", unit_test::k_TestFilesDir, ::ConstantTest::k_TestingDirName));
   DataStructure dataStructure = UnitTest::LoadDataStructure(baseDataFilePath);
 
   // Instantiate the filter and an Arguments Object
