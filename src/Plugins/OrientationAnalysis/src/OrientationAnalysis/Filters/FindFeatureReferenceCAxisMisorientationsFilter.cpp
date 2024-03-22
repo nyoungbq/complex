@@ -8,8 +8,14 @@
 #include "simplnx/Parameters/DataObjectNameParameter.hpp"
 #include "simplnx/Parameters/GeometrySelectionParameter.hpp"
 #include "simplnx/Utilities/SIMPLConversion.hpp"
+#include "simplnx/Filter/Actions/DeleteDataAction.hpp"
 
 using namespace nx::core;
+
+namespace
+{
+const DataPath k_TempQuatsPath = DataPath({"temp_quats_placeholder"});
+}
 
 namespace nx::core
 {
@@ -150,6 +156,13 @@ IFilter::PreflightResult FindFeatureReferenceCAxisMisorientationsFilter::preflig
   resultOutputActions.warnings().push_back(
       {-9801, "Finding the feature reference c-axis mis orientation requires Hexagonal-Low 6/m or Hexagonal-High 6/mmm type crystal structures. Make sure your data is of one of these two types."});
 
+  if(pUseConstantReferenceOrientationValue)
+  {
+    auto createConvertedQuatAction = std::make_unique<CreateArrayAction>(DataType::float32, std::vector<usize>{1}, std::vector<usize>{4}, ::k_TempQuatsPath);
+    resultOutputActions.value().appendAction(std::move(createConvertedQuatAction));
+    resultOutputActions.value().appendDeferredAction(std::make_unique<DeleteDataAction>(::k_TempQuatsPath));
+  }
+
   return {std::move(resultOutputActions), std::move(preflightUpdatedValues)};
 }
 
@@ -164,7 +177,7 @@ Result<> FindFeatureReferenceCAxisMisorientationsFilter::executeImpl(DataStructu
   inputValues.ConstantRefOrientationVec = filterArgs.value<std::vector<float32>>(k_ConstantRefOrientationVec_Key);
   inputValues.FeatureIdsArrayPath = filterArgs.value<DataPath>(k_FeatureIdsArrayPath_Key);
   inputValues.CellPhasesArrayPath = filterArgs.value<DataPath>(k_CellPhasesArrayPath_Key);
-  inputValues.QuatsArrayPath = filterArgs.value<DataPath>(k_QuatsArrayPath_Key);
+  inputValues.QuatsArrayPath = inputValues.UseConstantReferenceOrientation ? ::k_TempQuatsPath : filterArgs.value<DataPath>(k_QuatsArrayPath_Key);
   inputValues.AvgCAxesArrayPath = filterArgs.value<DataPath>(k_AvgCAxesArrayPath_Key);
   inputValues.CrystalStructuresArrayPath = filterArgs.value<DataPath>(k_CrystalStructuresArrayPath_Key);
   inputValues.FeatureAvgCAxisMisorientationsArrayName = inputValues.AvgCAxesArrayPath.getParent().createChildPath(filterArgs.value<std::string>(k_FeatureAvgCAxisMisorientationsArrayName_Key));
