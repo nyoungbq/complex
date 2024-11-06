@@ -15,7 +15,7 @@ namespace nx::core
 class ORIENTATIONANALYSIS_EXPORT ReadH5OimDataFilter : public IFilter
 {
 public:
-  ReadH5OimDataFilter();
+  ReadH5OimDataFilter() = default;
   ~ReadH5OimDataFilter() noexcept override = default;
 
   ReadH5OimDataFilter(const ReadH5OimDataFilter&) = delete;
@@ -116,9 +116,6 @@ protected:
    */
   Result<> executeImpl(DataStructure& dataStructure, const Arguments& filterArgs, const PipelineFilter* pipelineNode, const MessageHandler& messageHandler,
                        const std::atomic_bool& shouldCancel) const override;
-
-private:
-  int32 m_InstanceId;
 };
 } // namespace nx::core
 
