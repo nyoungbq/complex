@@ -9,7 +9,7 @@
 project = 'SIMPLNX Python Docs'
 copyright = '2024, BlueQuartz Software, LLC'
 author = 'BlueQuartz Software, LLC'
-release = '24.09.30'
+release = '24.11.11'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

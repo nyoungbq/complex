@@ -1,7 +1,7 @@
 Installation
 ============
 
-Latest Version: 24.09.30
+Latest Version: 24.11.11
 -------------------------
 
 The *simplnx* library can be installed through an Anaconda packages from the *BlueQuartzSoftware* channel. This can be achieved
@@ -10,8 +10,12 @@ by creating a new virtual environment and installing SIMPLNX into that environme
 
 .. attention::
 
-    Intel based MacOS machines can *ONLY* install up to Python 3.11. Due to dependecies from
-    conda-forge, Python 3.12 is not possible as of AUG 2024.
+    MacOS Machines will need to export an environment variable BEFORE trying to do the
+    conda installer.
+
+.. code:: shell
+
+    export CONDA_OVERRIDE_OSX=11.0
 
 
 Full DREAM3D-NX Installation
